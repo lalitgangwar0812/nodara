@@ -1,0 +1,15 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: nodara-backend
+  profiles:
+    default: local
+  jpa:
+    open-in-view: false
+
+logging:
+  level:
+    root: INFO
+    com.nodara.platform: INFO

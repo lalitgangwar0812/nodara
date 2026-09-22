@@ -1,0 +1,12 @@
+# Activate with SPRING_PROFILES_ACTIVE=postgres after PostgreSQL is running.
+spring:
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/nodara}
+    username: ${DATABASE_USERNAME:nodara}
+    password: ${DATABASE_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
