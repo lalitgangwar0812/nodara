@@ -56,6 +56,38 @@ class BackendClient:
         except Exception as e:
             raise RuntimeError(f"Unexpected error during registration: {str(e)}")
 
+    def heartbeat_device(self, device_id: int) -> Dict[str, Any]:
+        """
+        Send a heartbeat for a previously registered device.
+
+        Args:
+            device_id: The backend device identifier.
+
+        Returns:
+            The updated device response from the backend
+
+        Raises:
+            RuntimeError: If the request fails or the backend returns an error.
+        """
+        url = f"{self.base_url}/api/v1/devices/{device_id}/heartbeat"
+
+        try:
+            response = requests.post(
+                url,
+                timeout=self.timeout,
+                headers={"Content-Type": "application/json"},
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.Timeout:
+            raise RuntimeError(f"Heartbeat request to {url} timed out after {self.timeout} seconds")
+        except requests.exceptions.ConnectionError:
+            raise RuntimeError(f"Failed to connect to backend at {url}")
+        except requests.exceptions.HTTPError:
+            raise RuntimeError(f"Backend returned error {response.status_code}: {response.text}")
+        except Exception as e:
+            raise RuntimeError(f"Unexpected error during heartbeat: {str(e)}")
+
     def get_devices(self) -> list:
         """
         Retrieve all registered devices from the backend.

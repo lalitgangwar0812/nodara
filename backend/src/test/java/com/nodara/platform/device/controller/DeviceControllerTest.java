@@ -124,4 +124,30 @@ class DeviceControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.length()").value(0));
     }
+
+    @Test
+    void shouldHeartbeatDeviceSuccessfully() throws Exception {
+        // Arrange
+        testResponse.setLastHeartbeat(LocalDateTime.now());
+        when(deviceService.heartbeatDevice(1L)).thenReturn(testResponse);
+
+        // Act & Assert
+        mockMvc.perform(post("/api/v1/devices/1/heartbeat")
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(1))
+            .andExpect(jsonPath("$.hostname").value("test-hostname"));
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenHeartbeatDeviceDoesNotExist() throws Exception {
+        // Arrange
+        when(deviceService.heartbeatDevice(999L)).thenReturn(null);
+
+        // Act & Assert
+        mockMvc.perform(post("/api/v1/devices/999/heartbeat")
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.status").value(404));
+    }
 }

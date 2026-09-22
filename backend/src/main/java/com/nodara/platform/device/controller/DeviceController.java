@@ -49,6 +49,18 @@ public class DeviceController {
     }
 
     /**
+     * Record a heartbeat for an existing device.
+     */
+    @PostMapping(value = "/{id}/heartbeat", produces = MediaType.APPLICATION_JSON_VALUE)
+    public DeviceResponse heartbeatDevice(@PathVariable Long id) {
+        DeviceResponse device = deviceService.heartbeatDevice(id);
+        if (device == null) {
+            throw new DeviceNotFoundException("Device with id " + id + " not found");
+        }
+        return device;
+    }
+
+    /**
      * Exception handler for device not found.
      */
     @ExceptionHandler(DeviceNotFoundException.class)

@@ -35,6 +35,21 @@ export function DeviceList() {
     }
   };
 
+  const getStatus = (device) => {
+    const value = device.status || 'STALE';
+    if (value === 'ONLINE' || value === 'STALE') {
+      return value;
+    }
+
+    if (!device.lastHeartbeat) {
+      return 'STALE';
+    }
+
+    const lastSeen = new Date(device.lastHeartbeat).getTime();
+    const ageSeconds = (Date.now() - lastSeen) / 1000;
+    return ageSeconds <= 90 ? 'ONLINE' : 'STALE';
+  };
+
   if (loading) {
     return <div className="device-list-container"><p className="loading">Loading devices...</p></div>;
   }
@@ -70,6 +85,7 @@ export function DeviceList() {
                 <th>Hostname</th>
                 <th>Operating System</th>
                 <th>Agent Version</th>
+                <th>Status</th>
                 <th>Registered</th>
                 <th>Last Seen</th>
               </tr>
@@ -80,6 +96,7 @@ export function DeviceList() {
                   <td className="hostname">{device.hostname}</td>
                   <td>{device.osName} {device.osVersion}</td>
                   <td>{device.agentVersion}</td>
+                  <td>{getStatus(device)}</td>
                   <td>{formatDateTime(device.registeredAt)}</td>
                   <td>{formatDateTime(device.lastHeartbeat)}</td>
                 </tr>

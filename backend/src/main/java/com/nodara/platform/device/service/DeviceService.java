@@ -72,4 +72,19 @@ public class DeviceService {
             .map(DeviceResponse::new)
             .orElse(null);
     }
+
+    /**
+     * Update a device heartbeat timestamp.
+     */
+    @Transactional
+    public DeviceResponse heartbeatDevice(Long id) {
+        return deviceRepository.findById(id)
+            .map(device -> {
+                LocalDateTime now = LocalDateTime.now();
+                device.setLastHeartbeat(now);
+                device.setUpdatedAt(now);
+                return new DeviceResponse(deviceRepository.save(device));
+            })
+            .orElse(null);
+    }
 }

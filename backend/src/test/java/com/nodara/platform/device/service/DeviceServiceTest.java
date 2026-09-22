@@ -100,4 +100,36 @@ class DeviceServiceTest {
         verify(deviceRepository, times(2)).save(any(Device.class));
         verify(deviceRepository, times(2)).findByHostname("test-hostname");
     }
+
+    @Test
+    void shouldUpdateLastHeartbeatForExistingDevice() {
+        // Arrange
+        Device existingDevice = new Device("test-hostname", "Windows", "10", "1.0.0");
+        existingDevice.setId(1L);
+        existingDevice.setLastHeartbeat(java.time.LocalDateTime.now().minusMinutes(5));
+        when(deviceRepository.findById(1L)).thenReturn(Optional.of(existingDevice));
+        when(deviceRepository.save(any(Device.class))).thenReturn(existingDevice);
+
+        // Act
+        DeviceResponse response = deviceService.heartbeatDevice(1L);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(1L, response.getId());
+        assertNotNull(response.getLastHeartbeat());
+        verify(deviceRepository, times(1)).save(existingDevice);
+    }
+
+    @Test
+    void shouldReturnNullForHeartbeatOnUnknownDevice() {
+        // Arrange
+        when(deviceRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // Act
+        DeviceResponse response = deviceService.heartbeatDevice(999L);
+
+        // Assert
+        assertNull(response);
+        verify(deviceRepository, never()).save(any(Device.class));
+    }
 }

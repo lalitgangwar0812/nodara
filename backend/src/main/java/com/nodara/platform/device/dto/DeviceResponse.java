@@ -6,11 +6,14 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 public class DeviceResponse {
 
+    private static final long HEARTBEAT_STALE_THRESHOLD_SECONDS = 90L;
+
     private Long id;
     private String hostname;
     private String osName;
     private String osVersion;
     private String agentVersion;
+    private String status;
     
     @JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime registeredAt;
@@ -30,6 +33,7 @@ public class DeviceResponse {
         this.agentVersion = device.getAgentVersion();
         this.registeredAt = device.getRegisteredAt();
         this.lastHeartbeat = device.getLastHeartbeat();
+        this.status = determineStatus(this.lastHeartbeat);
     }
 
     // Getters and setters
@@ -73,6 +77,17 @@ public class DeviceResponse {
         this.agentVersion = agentVersion;
     }
 
+    public String getStatus() {
+        if (status == null) {
+            status = determineStatus(this.lastHeartbeat);
+        }
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     public LocalDateTime getRegisteredAt() {
         return registeredAt;
     }
@@ -87,5 +102,15 @@ public class DeviceResponse {
 
     public void setLastHeartbeat(LocalDateTime lastHeartbeat) {
         this.lastHeartbeat = lastHeartbeat;
+        this.status = determineStatus(lastHeartbeat);
+    }
+
+    private static String determineStatus(LocalDateTime lastHeartbeat) {
+        if (lastHeartbeat == null) {
+            return "STALE";
+        }
+
+        long secondsSinceHeartbeat = java.time.Duration.between(lastHeartbeat, java.time.LocalDateTime.now()).getSeconds();
+        return secondsSinceHeartbeat <= HEARTBEAT_STALE_THRESHOLD_SECONDS ? "ONLINE" : "STALE";
     }
 }
