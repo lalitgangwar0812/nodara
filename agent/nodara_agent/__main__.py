@@ -1,7 +1,11 @@
 """Executable entry point for the Nodara endpoint agent."""
 
+import os
 import sys
-from nodara_agent.registration import register_with_backend, run_heartbeat_loop
+import time
+from threading import Thread
+
+from nodara_agent.registration import register_with_backend, run_heartbeat_loop, run_telemetry_loop
 
 
 def main() -> None:
@@ -16,10 +20,23 @@ def main() -> None:
         sys.exit(1)
 
     device_id = response.get("id")
+    heartbeat_interval = os.getenv("NODARA_HEARTBEAT_INTERVAL_SECONDS", "30")
+    telemetry_interval = os.getenv("NODARA_TELEMETRY_INTERVAL_SECONDS", "60")
     print()
-    print(f"Agent is ready. Heartbeats will be sent every {__import__('os').getenv('NODARA_HEARTBEAT_INTERVAL_SECONDS', '30')} seconds.")
+    print(
+        "Agent is ready. Heartbeats will be sent every "
+        f"{heartbeat_interval} seconds and telemetry every {telemetry_interval} seconds."
+    )
+
+    heartbeat_thread = Thread(target=run_heartbeat_loop, kwargs={"device_id": device_id}, daemon=True)
+    telemetry_thread = Thread(target=run_telemetry_loop, kwargs={"device_id": device_id}, daemon=True)
+
+    heartbeat_thread.start()
+    telemetry_thread.start()
+
     try:
-        run_heartbeat_loop(device_id=device_id)
+        while True:
+            time.sleep(1)
     except KeyboardInterrupt:
         print()
         print("Stopping Nodara endpoint agent.")

@@ -6,6 +6,7 @@ import socket
 import time
 from typing import Dict, Optional
 from nodara_agent.client import BackendClient
+from nodara_agent.telemetry import collect_system_telemetry, get_telemetry_interval_seconds
 
 
 AGENT_VERSION = "0.1.0"
@@ -87,4 +88,28 @@ def run_heartbeat_loop(backend_url: str = None, device_id: Optional[int] = None)
             print(f"✓ Heartbeat successful for device ID {device_id} at {response.get('lastHeartbeat')}")
         except RuntimeError as e:
             print(f"✗ Heartbeat failed: {str(e)}")
+        time.sleep(interval_seconds)
+
+
+def run_telemetry_loop(backend_url: str = None, device_id: Optional[int] = None) -> None:
+    """Send periodic telemetry payloads until interrupted by the user."""
+    if device_id is None:
+        raise ValueError("A registered device ID is required before starting telemetry collection.")
+
+    interval_seconds = get_telemetry_interval_seconds()
+    client = BackendClient(backend_url)
+
+    print(f"Starting telemetry loop every {interval_seconds} seconds.")
+    while True:
+        try:
+            telemetry = collect_system_telemetry()
+            response = client.send_telemetry(device_id, telemetry)
+            print(
+                "✓ Telemetry successful for device ID "
+                f"{device_id} at {response.get('recordedAt')} "
+                f"(CPU {response.get('cpuUsage')}%, RAM {response.get('ramUsage')}%, "
+                f"Disk {response.get('diskUsage')}%)"
+            )
+        except RuntimeError as e:
+            print(f"✗ Telemetry failed: {str(e)}")
         time.sleep(interval_seconds)

@@ -88,6 +88,37 @@ class BackendClient:
         except Exception as e:
             raise RuntimeError(f"Unexpected error during heartbeat: {str(e)}")
 
+    def send_telemetry(self, device_id: int, telemetry: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Send telemetry for a previously registered device.
+
+        Args:
+            device_id: The backend device identifier.
+            telemetry: A dictionary containing cpuUsage, ramUsage, diskUsage, uptimeSeconds.
+
+        Returns:
+            The telemetry response from the backend.
+        """
+        url = f"{self.base_url}/api/v1/devices/{device_id}/telemetry"
+
+        try:
+            response = requests.post(
+                url,
+                json=telemetry,
+                timeout=self.timeout,
+                headers={"Content-Type": "application/json"},
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.Timeout:
+            raise RuntimeError(f"Telemetry request to {url} timed out after {self.timeout} seconds")
+        except requests.exceptions.ConnectionError:
+            raise RuntimeError(f"Failed to connect to backend at {url}")
+        except requests.exceptions.HTTPError:
+            raise RuntimeError(f"Backend returned error {response.status_code}: {response.text}")
+        except Exception as e:
+            raise RuntimeError(f"Unexpected error during telemetry send: {str(e)}")
+
     def get_devices(self) -> list:
         """
         Retrieve all registered devices from the backend.

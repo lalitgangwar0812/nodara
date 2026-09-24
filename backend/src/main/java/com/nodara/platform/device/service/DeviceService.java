@@ -4,6 +4,7 @@ import com.nodara.platform.device.dto.DeviceRegistrationRequest;
 import com.nodara.platform.device.dto.DeviceResponse;
 import com.nodara.platform.device.entity.Device;
 import com.nodara.platform.device.repository.DeviceRepository;
+import com.nodara.platform.device.repository.DeviceTelemetryRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -13,9 +14,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class DeviceService {
 
     private final DeviceRepository deviceRepository;
+    private final DeviceTelemetryRepository deviceTelemetryRepository;
 
-    public DeviceService(DeviceRepository deviceRepository) {
+    public DeviceService(DeviceRepository deviceRepository, DeviceTelemetryRepository deviceTelemetryRepository) {
         this.deviceRepository = deviceRepository;
+        this.deviceTelemetryRepository = deviceTelemetryRepository;
     }
 
     /**
@@ -51,7 +54,7 @@ public class DeviceService {
     public List<DeviceResponse> getAllDevices() {
         return deviceRepository.findAll()
             .stream()
-            .map(DeviceResponse::new)
+            .map(this::mapToDeviceResponse)
             .toList();
     }
 
@@ -60,7 +63,7 @@ public class DeviceService {
      */
     public DeviceResponse getDeviceById(Long id) {
         return deviceRepository.findById(id)
-            .map(DeviceResponse::new)
+            .map(this::mapToDeviceResponse)
             .orElse(null);
     }
 
@@ -69,8 +72,15 @@ public class DeviceService {
      */
     public DeviceResponse getDeviceByHostname(String hostname) {
         return deviceRepository.findByHostname(hostname)
-            .map(DeviceResponse::new)
+            .map(this::mapToDeviceResponse)
             .orElse(null);
+    }
+
+    private DeviceResponse mapToDeviceResponse(Device device) {
+        DeviceResponse response = new DeviceResponse(device);
+        deviceTelemetryRepository.findFirstByDevice_IdOrderByRecordedAtDesc(device.getId())
+            .ifPresent(telemetry -> response.setLatestTelemetry(new DeviceResponse.DeviceTelemetrySummary(telemetry)));
+        return response;
     }
 
     /**

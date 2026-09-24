@@ -2,7 +2,10 @@ package com.nodara.platform.device.controller;
 
 import com.nodara.platform.device.dto.DeviceRegistrationRequest;
 import com.nodara.platform.device.dto.DeviceResponse;
+import com.nodara.platform.device.dto.DeviceTelemetryRequest;
+import com.nodara.platform.device.dto.DeviceTelemetryResponse;
 import com.nodara.platform.device.service.DeviceService;
+import com.nodara.platform.device.service.DeviceTelemetryService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -14,9 +17,11 @@ import org.springframework.web.bind.annotation.*;
 public class DeviceController {
 
     private final DeviceService deviceService;
+    private final DeviceTelemetryService deviceTelemetryService;
 
-    public DeviceController(DeviceService deviceService) {
+    public DeviceController(DeviceService deviceService, DeviceTelemetryService deviceTelemetryService) {
         this.deviceService = deviceService;
+        this.deviceTelemetryService = deviceTelemetryService;
     }
 
     /**
@@ -58,6 +63,18 @@ public class DeviceController {
             throw new DeviceNotFoundException("Device with id " + id + " not found");
         }
         return device;
+    }
+
+    /**
+     * Record telemetry for an existing device.
+     */
+    @PostMapping(value = "/{id}/telemetry", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public DeviceTelemetryResponse recordTelemetry(@PathVariable Long id, @Valid @RequestBody DeviceTelemetryRequest request) {
+        DeviceTelemetryResponse telemetry = deviceTelemetryService.recordTelemetry(id, request);
+        if (telemetry == null) {
+            throw new DeviceNotFoundException("Device with id " + id + " not found");
+        }
+        return telemetry;
     }
 
     /**

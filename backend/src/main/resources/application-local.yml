@@ -2,8 +2,8 @@
 # Uses in-memory H2 database to allow JPA repositories to function.
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb
-    driverClassName: com.h2.Driver
+    url: jdbc:h2:mem:nodara-local;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
     username: sa
     password:
   h2:

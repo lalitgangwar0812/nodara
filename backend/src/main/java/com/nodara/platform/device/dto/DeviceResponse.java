@@ -1,8 +1,11 @@
 package com.nodara.platform.device.dto;
 
-import com.nodara.platform.device.entity.Device;
-import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.nodara.platform.device.entity.Device;
+import com.nodara.platform.device.entity.DeviceTelemetry;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 public class DeviceResponse {
 
@@ -14,10 +17,11 @@ public class DeviceResponse {
     private String osVersion;
     private String agentVersion;
     private String status;
-    
+    private DeviceTelemetrySummary latestTelemetry;
+
     @JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime registeredAt;
-    
+
     @JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime lastHeartbeat;
 
@@ -88,6 +92,14 @@ public class DeviceResponse {
         this.status = status;
     }
 
+    public DeviceTelemetrySummary getLatestTelemetry() {
+        return latestTelemetry;
+    }
+
+    public void setLatestTelemetry(DeviceTelemetrySummary latestTelemetry) {
+        this.latestTelemetry = latestTelemetry;
+    }
+
     public LocalDateTime getRegisteredAt() {
         return registeredAt;
     }
@@ -112,5 +124,67 @@ public class DeviceResponse {
 
         long secondsSinceHeartbeat = java.time.Duration.between(lastHeartbeat, java.time.LocalDateTime.now()).getSeconds();
         return secondsSinceHeartbeat <= HEARTBEAT_STALE_THRESHOLD_SECONDS ? "ONLINE" : "STALE";
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class DeviceTelemetrySummary {
+        private BigDecimal cpuUsage;
+        private BigDecimal ramUsage;
+        private BigDecimal diskUsage;
+        private Long uptimeSeconds;
+
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        private LocalDateTime recordedAt;
+
+        public DeviceTelemetrySummary() {
+        }
+
+        public DeviceTelemetrySummary(DeviceTelemetry telemetry) {
+            this.cpuUsage = telemetry.getCpuUsage();
+            this.ramUsage = telemetry.getRamUsage();
+            this.diskUsage = telemetry.getDiskUsage();
+            this.uptimeSeconds = telemetry.getUptimeSeconds();
+            this.recordedAt = telemetry.getRecordedAt();
+        }
+
+        public BigDecimal getCpuUsage() {
+            return cpuUsage;
+        }
+
+        public void setCpuUsage(BigDecimal cpuUsage) {
+            this.cpuUsage = cpuUsage;
+        }
+
+        public BigDecimal getRamUsage() {
+            return ramUsage;
+        }
+
+        public void setRamUsage(BigDecimal ramUsage) {
+            this.ramUsage = ramUsage;
+        }
+
+        public BigDecimal getDiskUsage() {
+            return diskUsage;
+        }
+
+        public void setDiskUsage(BigDecimal diskUsage) {
+            this.diskUsage = diskUsage;
+        }
+
+        public Long getUptimeSeconds() {
+            return uptimeSeconds;
+        }
+
+        public void setUptimeSeconds(Long uptimeSeconds) {
+            this.uptimeSeconds = uptimeSeconds;
+        }
+
+        public LocalDateTime getRecordedAt() {
+            return recordedAt;
+        }
+
+        public void setRecordedAt(LocalDateTime recordedAt) {
+            this.recordedAt = recordedAt;
+        }
     }
 }
