@@ -58,6 +58,34 @@ class DeviceServiceTest {
     }
 
     @Test
+    void shouldReuseExistingDeviceByStableUuid() {
+        // Arrange
+        String stableUuid = "550e8400-e29b-41d4-a716-446655440000";
+        Device existingDevice = new Device(stableUuid, "test-hostname", "Windows", "10", "1.0.0");
+        existingDevice.setId(1L);
+        when(deviceRepository.findByDeviceUuid(stableUuid)).thenReturn(Optional.of(existingDevice));
+        when(deviceRepository.save(any(Device.class))).thenReturn(existingDevice);
+
+        DeviceRegistrationRequest requestWithUuid = new DeviceRegistrationRequest(
+            stableUuid,
+            "test-hostname",
+            "Windows",
+            "11",
+            "1.0.1"
+        );
+
+        // Act
+        DeviceResponse response = deviceService.registerDevice(requestWithUuid);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(1L, response.getId());
+        assertEquals("11", response.getOsVersion());
+        assertEquals("1.0.1", response.getAgentVersion());
+        verify(deviceRepository, times(1)).save(existingDevice);
+    }
+
+    @Test
     void shouldUpdateExistingDeviceByHostname() {
         // Arrange
         Device existingDevice = new Device("test-hostname", "Windows", "10", "1.0.0");
@@ -118,6 +146,30 @@ class DeviceServiceTest {
         assertEquals(1L, response.getId());
         assertNotNull(response.getLastHeartbeat());
         verify(deviceRepository, times(1)).save(existingDevice);
+    }
+
+    @Test
+    void shouldPreserveRegisteredAtWhenReRegisteringByStableUuid() {
+        String stableUuid = "550e8400-e29b-41d4-a716-446655440000";
+        Device existingDevice = new Device(stableUuid, "test-hostname", "Windows", "10", "1.0.0");
+        existingDevice.setId(1L);
+        java.time.LocalDateTime registeredAt = java.time.LocalDateTime.now().minusHours(2);
+        java.time.LocalDateTime previousHeartbeat = java.time.LocalDateTime.now().minusMinutes(5);
+        existingDevice.setRegisteredAt(registeredAt);
+        existingDevice.setLastHeartbeat(previousHeartbeat);
+        when(deviceRepository.findByDeviceUuid(stableUuid)).thenReturn(Optional.of(existingDevice));
+        when(deviceRepository.save(any(Device.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        deviceService.registerDevice(new DeviceRegistrationRequest(
+            stableUuid,
+            "updated-hostname",
+            "Linux",
+            "6.8",
+            "1.0.1"
+        ));
+
+        assertEquals(registeredAt, existingDevice.getRegisteredAt());
+        assertTrue(existingDevice.getLastHeartbeat().isAfter(previousHeartbeat));
     }
 
     @Test

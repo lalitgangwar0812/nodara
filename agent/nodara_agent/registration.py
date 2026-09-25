@@ -4,6 +4,8 @@ import os
 import platform
 import socket
 import time
+import uuid
+from pathlib import Path
 from typing import Dict, Optional
 from nodara_agent.client import BackendClient
 from nodara_agent.telemetry import collect_system_telemetry, get_telemetry_interval_seconds
@@ -12,22 +14,45 @@ from nodara_agent.telemetry import collect_system_telemetry, get_telemetry_inter
 AGENT_VERSION = "0.1.0"
 
 
+def get_agent_state_path() -> Path:
+    """Return the path used to persist the stable machine identity."""
+    home_dir = Path.home()
+    state_dir = home_dir / ".nodara"
+    state_dir.mkdir(exist_ok=True, parents=True)
+    return state_dir / "agent_id.txt"
+
+
+def get_or_create_device_uuid() -> str:
+    """Return a stable UUID for this machine, persisted locally."""
+    state_path = get_agent_state_path()
+
+    if state_path.exists():
+        stored_value = state_path.read_text(encoding="utf-8").strip()
+        if stored_value:
+            return stored_value
+
+    new_uuid = str(uuid.uuid4())
+    state_path.write_text(new_uuid, encoding="utf-8")
+    return new_uuid
+
+
 def get_system_info() -> Dict[str, str]:
     """
     Collect basic system information for device registration.
     
     Returns:
-        Dictionary with hostname, osName, osVersion, agentVersion
+        Dictionary with hostname, osName, osVersion, agentVersion, deviceUuid
     """
     hostname = socket.gethostname()
     system = platform.system()
     release = platform.release()
-    
+
     return {
         "hostname": hostname,
         "osName": system,
         "osVersion": release,
         "agentVersion": AGENT_VERSION,
+        "deviceUuid": get_or_create_device_uuid(),
     }
 
 

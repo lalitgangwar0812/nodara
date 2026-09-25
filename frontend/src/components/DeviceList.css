@@ -149,10 +149,10 @@
   border: 1px solid rgba(34, 197, 94, 0.5);
 }
 
-.status-stale {
-  background-color: rgba(251, 191, 36, 0.14);
-  color: #fcd34d;
-  border: 1px solid rgba(251, 191, 36, 0.5);
+.status-offline {
+  background-color: rgba(248, 113, 113, 0.14);
+  color: #fca5a5;
+  border: 1px solid rgba(248, 113, 113, 0.5);
 }
 
 .telemetry-value {

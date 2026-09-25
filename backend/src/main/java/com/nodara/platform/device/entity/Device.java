@@ -6,13 +6,17 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "devices", indexes = {
     @Index(name = "idx_devices_hostname", columnList = "hostname"),
-    @Index(name = "idx_devices_last_heartbeat", columnList = "last_heartbeat")
+    @Index(name = "idx_devices_last_heartbeat", columnList = "last_heartbeat"),
+    @Index(name = "idx_devices_device_uuid", columnList = "device_uuid", unique = true)
 })
 public class Device {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "device_uuid", unique = true, nullable = false, length = 36)
+    private String deviceUuid;
 
     @Column(unique = true, nullable = false, length = 255)
     private String hostname;
@@ -42,7 +46,8 @@ public class Device {
     public Device() {
     }
 
-    public Device(String hostname, String osName, String osVersion, String agentVersion) {
+    public Device(String deviceUuid, String hostname, String osName, String osVersion, String agentVersion) {
+        this.deviceUuid = deviceUuid;
         this.hostname = hostname;
         this.osName = osName;
         this.osVersion = osVersion;
@@ -54,9 +59,21 @@ public class Device {
         this.updatedAt = now;
     }
 
+    public Device(String hostname, String osName, String osVersion, String agentVersion) {
+        this(null, hostname, osName, osVersion, agentVersion);
+    }
+
     // Getters and setters
     public Long getId() {
         return id;
+    }
+
+    public String getDeviceUuid() {
+        return deviceUuid;
+    }
+
+    public void setDeviceUuid(String deviceUuid) {
+        this.deviceUuid = deviceUuid;
     }
 
     public void setId(Long id) {

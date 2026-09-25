@@ -44,7 +44,7 @@ Start the agent from `agent`: `python -m nodara_agent`.
 
 ## Current status
 
-Phase 1 foundation is implemented: a bootable backend health endpoint, frontend placeholder, agent entry point, PostgreSQL Compose definition, and project documentation. Device monitoring, authentication workflows, telemetry, alerts, incidents, automation, CI/CD, cloud deployment, and observability are not implemented.
+Endpoint registration, persistent agent identity, heartbeat monitoring, CPU/RAM/disk/uptime telemetry, PostgreSQL persistence, and the React endpoint dashboard are implemented. The heartbeat timeout is configurable with `HEARTBEAT_TIMEOUT_SECONDS`; the default is 90 seconds. Alerts, incidents, automation, CI/CD, cloud deployment, and observability remain future work.
 
 ## Planned phases
 

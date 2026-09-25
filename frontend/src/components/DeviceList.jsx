@@ -62,18 +62,18 @@ export function DeviceList() {
   const getTelemetry = (device) => device.latestTelemetry || null;
 
   const getStatus = (device) => {
-    const value = device.status || 'STALE';
-    if (value === 'ONLINE' || value === 'STALE') {
+    const value = device.status || 'OFFLINE';
+    if (value === 'ONLINE' || value === 'OFFLINE') {
       return value;
     }
 
     if (!device.lastHeartbeat) {
-      return 'STALE';
+      return 'OFFLINE';
     }
 
     const lastSeen = new Date(device.lastHeartbeat).getTime();
     const ageSeconds = (Date.now() - lastSeen) / 1000;
-    return ageSeconds <= 90 ? 'ONLINE' : 'STALE';
+    return ageSeconds <= 90 ? 'ONLINE' : 'OFFLINE';
   };
 
   if (loading) {
@@ -125,7 +125,7 @@ export function DeviceList() {
               {devices.map((device) => {
                 const telemetry = getTelemetry(device);
                 const status = getStatus(device);
-                const statusClassName = status === 'ONLINE' ? 'status-online' : 'status-stale';
+                const statusClassName = status === 'ONLINE' ? 'status-online' : 'status-offline';
                 const hasTelemetry = Boolean(telemetry);
 
                 return (

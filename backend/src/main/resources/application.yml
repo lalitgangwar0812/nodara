@@ -4,6 +4,8 @@ server:
 nodara:
   cors:
     allowed-origin: ${CORS_ALLOWED_ORIGIN:http://localhost:5173}
+  heartbeat:
+    timeout-seconds: ${HEARTBEAT_TIMEOUT_SECONDS:90}
 
 spring:
   application:

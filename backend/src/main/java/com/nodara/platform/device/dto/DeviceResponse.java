@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 public class DeviceResponse {
 
-    private static final long HEARTBEAT_STALE_THRESHOLD_SECONDS = 90L;
+    private static final long DEFAULT_HEARTBEAT_TIMEOUT_SECONDS = 90L;
 
     private Long id;
     private String hostname;
@@ -30,6 +30,10 @@ public class DeviceResponse {
     }
 
     public DeviceResponse(Device device) {
+        this(device, DEFAULT_HEARTBEAT_TIMEOUT_SECONDS);
+    }
+
+    public DeviceResponse(Device device, long heartbeatTimeoutSeconds) {
         this.id = device.getId();
         this.hostname = device.getHostname();
         this.osName = device.getOsName();
@@ -37,7 +41,7 @@ public class DeviceResponse {
         this.agentVersion = device.getAgentVersion();
         this.registeredAt = device.getRegisteredAt();
         this.lastHeartbeat = device.getLastHeartbeat();
-        this.status = determineStatus(this.lastHeartbeat);
+        this.status = determineStatus(this.lastHeartbeat, heartbeatTimeoutSeconds);
     }
 
     // Getters and setters
@@ -83,7 +87,7 @@ public class DeviceResponse {
 
     public String getStatus() {
         if (status == null) {
-            status = determineStatus(this.lastHeartbeat);
+            status = determineStatus(this.lastHeartbeat, DEFAULT_HEARTBEAT_TIMEOUT_SECONDS);
         }
         return status;
     }
@@ -114,16 +118,16 @@ public class DeviceResponse {
 
     public void setLastHeartbeat(LocalDateTime lastHeartbeat) {
         this.lastHeartbeat = lastHeartbeat;
-        this.status = determineStatus(lastHeartbeat);
+        this.status = determineStatus(lastHeartbeat, DEFAULT_HEARTBEAT_TIMEOUT_SECONDS);
     }
 
-    private static String determineStatus(LocalDateTime lastHeartbeat) {
+    private static String determineStatus(LocalDateTime lastHeartbeat, long heartbeatTimeoutSeconds) {
         if (lastHeartbeat == null) {
-            return "STALE";
+            return "OFFLINE";
         }
 
         long secondsSinceHeartbeat = java.time.Duration.between(lastHeartbeat, java.time.LocalDateTime.now()).getSeconds();
-        return secondsSinceHeartbeat <= HEARTBEAT_STALE_THRESHOLD_SECONDS ? "ONLINE" : "STALE";
+        return secondsSinceHeartbeat <= heartbeatTimeoutSeconds ? "ONLINE" : "OFFLINE";
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)

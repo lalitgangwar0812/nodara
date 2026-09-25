@@ -8,4 +8,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface DeviceRepository extends JpaRepository<Device, Long> {
     Optional<Device> findByHostname(String hostname);
+    Optional<Device> findByDeviceUuid(String deviceUuid);
 }

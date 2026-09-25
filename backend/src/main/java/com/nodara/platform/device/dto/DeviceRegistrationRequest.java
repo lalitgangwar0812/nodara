@@ -5,6 +5,9 @@ import jakarta.validation.constraints.Size;
 
 public class DeviceRegistrationRequest {
 
+    @Size(max = 36, message = "deviceUuid must not exceed 36 characters")
+    private String deviceUuid;
+
     @NotBlank(message = "hostname is required")
     @Size(max = 255, message = "hostname must not exceed 255 characters")
     private String hostname;
@@ -26,6 +29,11 @@ public class DeviceRegistrationRequest {
     }
 
     public DeviceRegistrationRequest(String hostname, String osName, String osVersion, String agentVersion) {
+        this(null, hostname, osName, osVersion, agentVersion);
+    }
+
+    public DeviceRegistrationRequest(String deviceUuid, String hostname, String osName, String osVersion, String agentVersion) {
+        this.deviceUuid = deviceUuid;
         this.hostname = hostname;
         this.osName = osName;
         this.osVersion = osVersion;
@@ -33,6 +41,14 @@ public class DeviceRegistrationRequest {
     }
 
     // Getters and setters
+    public String getDeviceUuid() {
+        return deviceUuid;
+    }
+
+    public void setDeviceUuid(String deviceUuid) {
+        this.deviceUuid = deviceUuid;
+    }
+
     public String getHostname() {
         return hostname;
     }

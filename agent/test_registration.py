@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from nodara_agent.registration import get_heartbeat_interval_seconds, get_system_info
+from nodara_agent.registration import get_heartbeat_interval_seconds, get_or_create_device_uuid, get_system_info
 from nodara_agent.telemetry import collect_system_telemetry, get_telemetry_interval_seconds
 
 
@@ -34,6 +34,13 @@ class RegistrationTests(unittest.TestCase):
         self.assertIn("osName", info)
         self.assertIn("osVersion", info)
         self.assertIn("agentVersion", info)
+        self.assertIn("deviceUuid", info)
+
+    def test_persistent_device_uuid_is_reused(self):
+        first_uuid = get_or_create_device_uuid()
+        second_uuid = get_or_create_device_uuid()
+        self.assertEqual(first_uuid, second_uuid)
+        self.assertTrue(len(first_uuid) > 0)
 
     def test_collect_system_telemetry_returns_expected_fields(self):
         telemetry = collect_system_telemetry()
